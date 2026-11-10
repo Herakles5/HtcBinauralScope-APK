@@ -23,8 +23,29 @@ DEVICE_MAC = "41:42:D4:14:B4:9D"
 DEVICE_CARD = "bluez_card.41_42_D4_14_B4_9D"
 DEVICE_NAME = "HTC NE20"
 
+def detect_connected_bt_device():
+    """Auto-detect any currently connected Bluetooth audio device."""
+    global DEVICE_MAC, DEVICE_CARD, DEVICE_NAME
+    try:
+        # Check if default HTC is connected
+        res = subprocess.run(["bluetoothctl", "info", DEVICE_MAC], capture_output=True, text=True, timeout=1.0)
+        if "Connected: yes" in res.stdout:
+            return
+        # Find any other connected BT device
+        res_conn = subprocess.run(["bluetoothctl", "devices", "Connected"], capture_output=True, text=True, timeout=1.0)
+        for line in res_conn.stdout.splitlines():
+            parts = line.split()
+            if len(parts) >= 3 and parts[0] == "Device":
+                DEVICE_MAC = parts[1]
+                DEVICE_CARD = f"bluez_card.{DEVICE_MAC.replace(':', '_')}"
+                DEVICE_NAME = " ".join(parts[2:])
+                return
+    except Exception:
+        pass
+
 class OscilloscopeApp:
     def __init__(self, root):
+        detect_connected_bt_device()
         self.root = root
         self.root.title(f"OSCILLOSCOPE // {DEVICE_NAME} [{DEVICE_MAC}]")
         self.root.geometry("1060x750")
@@ -821,10 +842,13 @@ class OscilloscopeApp:
                 self.audio_proc.kill()
             except Exception:
                 pass
-        # Restore audio routing to default PC speakers
+        # Restore audio routing to dual_out (HDMI Monitor + Analog Speakers)
         try:
-            os.system("pactl set-default-sink alsa_output.pci-0000_00_1f.3.analog-stereo >/dev/null 2>&1")
-            os.system("for id in $(pactl list sink-inputs short | awk '{print $1}'); do pactl move-sink-input $id alsa_output.pci-0000_00_1f.3.analog-stereo 2>/dev/null; done")
+            os.system("amixer -c 1 sset 'Master' 100% unmute >/dev/null 2>&1")
+            os.system("amixer -c 1 sset 'Headphone' 100% unmute >/dev/null 2>&1")
+            os.system("amixer -c 1 sset 'Front' 100% unmute >/dev/null 2>&1")
+            os.system("pactl set-default-sink dual_out >/dev/null 2>&1 || pactl set-default-sink alsa_output.pci-0000_00_1f.3.analog-stereo >/dev/null 2>&1")
+            os.system("def_sink=$(pactl get-default-sink); for id in $(pactl list sink-inputs short | awk '{print $1}'); do pactl move-sink-input $id $def_sink 2>/dev/null; done")
         except Exception:
             pass
         self.root.destroy()
