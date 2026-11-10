@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF080C10</color>
+    <color name="screen_bg">#FF040608</color>
+    <color name="neon_cyan">#FF00E5FF</color>
+    <color name="neon_green">#FF00FF88</color>
+    <color name="card_bg">#FF0D151C</color>
+    <color name="accent_pink">#FFFF79C6</color>
+    <color name="accent_orange">#FFFFB86C</color>
+    <color name="text_white">#FFF8F8F2</color>
+    <color name="text_muted">#FF90A4AE</color>
+    <color name="grid_color">#FF102020</color>
+</resources>
+

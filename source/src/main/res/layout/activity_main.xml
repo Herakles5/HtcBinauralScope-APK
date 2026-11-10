@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/black"
+    android:padding="8dp">
+
+    <!-- Top Header Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/card_bg"
+        android:padding="10dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="⚡ HTC BINAURAL SCOPE"
+            android:textColor="@color/neon_cyan"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDeviceStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HTC NE20 ● ONLINE"
+            android:textColor="@color/neon_green"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Oscilloscope Screen View -->
+    <com.meinos.htctranslator.OscilloscopeView
+        android:id="@+id/oscilloscopeView"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:layout_marginTop="6dp"
+        android:background="@color/screen_bg" />
+
+    <!-- Bottom HUD Metrics -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/card_bg"
+        android:padding="6dp">
+
+        <TextView
+            android:id="@+id/tvAudioMetrics"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="CH1 [AUDIO]: 0.00 Vpp | --- Hz"
+            android:textColor="@color/neon_cyan"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/tvRfMetrics"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CH2 [RF]: -12 dBm | 98%"
+            android:textColor="@color/neon_green"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <!-- Controls Container (Scrollable) -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="6dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Card: AI Translator & Audio Mode -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/card_bg"
+                android:padding="10dp"
+                android:layout_marginBottom="6dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AUDIO INPUT SOURCE"
+                    android:textColor="@color/neon_cyan"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <RadioGroup
+                    android:id="@+id/rgAudioSource"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp">
+
+                    <RadioButton
+                        android:id="@+id/rbLivestream"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📻 Livestream / Video"
+                        android:textColor="@color/text_white"
+                        android:textSize="12sp"
+                        android:checked="true" />
+
+                    <RadioButton
+                        android:id="@+id/rbMic"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🎙️ HTC NE20 Mic"
+                        android:textColor="@color/text_white"
+                        android:textSize="12sp"
+                        android:layout_marginStart="12dp" />
+                </RadioGroup>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/swBinaural"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🎧 Binaural Split: L:Original | R:Translation"
+                    android:textColor="@color/accent_pink"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:checked="true"
+                    android:layout_marginTop="6dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="LANGUAGE TRANSLATION MODE"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp"
+                    android:layout_marginTop="8dp" />
+
+                <Spinner
+                    android:id="@+id/spLangMode"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="#172331" />
+
+                <!-- Big Continuous Real-Time Translation Button -->
+                <Button
+                    android:id="@+id/btnContinuousTranslate"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:backgroundTint="#00E5FF"
+                    android:text="▶ START CONTINUOUS TRANSLATION"
+                    android:textColor="#080C10"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="10dp" />
+
+                <!-- Single Chunk Test Button -->
+                <Button
+                    android:id="@+id/btnTranslateChunk"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:backgroundTint="#172331"
+                    android:text="⚡ 4s Single Test Chunk"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp"
+                    android:layout_marginTop="4dp" />
+
+                <TextView
+                    android:id="@+id/tvStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Ready: Binaural Split Active"
+                    android:textColor="@color/neon_green"
+                    android:textSize="11sp"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+
+            <!-- Card: Live AI Output Display -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/card_bg"
+                android:padding="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TRANSLATION LOG // OUTPUT"
+                    android:textColor="@color/accent_orange"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvLogOutput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="100dp"
+                    android:background="#06090D"
+                    android:padding="8dp"
+                    android:textColor="@color/text_white"
+                    android:textSize="11sp"
+                    android:typeface="monospace"
+                    android:text="Waiting for audio stream...\nLeft ear: Original audio | Right ear: Live translation."
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>
+
