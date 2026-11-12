@@ -7,8 +7,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -98,56 +96,63 @@ public class GroqCloudClient {
     }
 
     private static String transcribeWithGroq(byte[] wavBytes, String apiKey, String lang) throws Exception {
-        String boundary = "===" + System.currentTimeMillis() + "===";
+        // Standard alphanumeric boundary without '=' characters (RFC 2046 compliant, Cloudflare/Envoy friendly)
+        String boundary = "----GroqFormBoundary" + System.currentTimeMillis() + "XYZ";
         URL url = new URL(GROQ_TRANSCRIPTION_URL);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setConnectTimeout(8000);
+        conn.setConnectTimeout(10000);
         conn.setReadTimeout(15000);
         conn.setDoOutput(true);
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Authorization", "Bearer " + apiKey);
         conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
 
-        OutputStream os = conn.getOutputStream();
-        PrintWriter writer = new PrintWriter(new OutputStreamWriter(os, "UTF-8"), true);
+        ByteArrayOutputStream body = new ByteArrayOutputStream();
 
         // model parameter
-        writer.append("--").append(boundary).append("\r\n");
-        writer.append("Content-Disposition: form-data; name=\"model\"\r\n\r\n");
-        writer.append("whisper-large-v3-turbo").append("\r\n");
+        body.write(("--" + boundary + "\r\n").getBytes("UTF-8"));
+        body.write("Content-Disposition: form-data; name=\"model\"\r\n\r\n".getBytes("UTF-8"));
+        body.write("whisper-large-v3-turbo\r\n".getBytes("UTF-8"));
 
         // response_format parameter
-        writer.append("--").append(boundary).append("\r\n");
-        writer.append("Content-Disposition: form-data; name=\"response_format\"\r\n\r\n");
-        writer.append("json").append("\r\n");
+        body.write(("--" + boundary + "\r\n").getBytes("UTF-8"));
+        body.write("Content-Disposition: form-data; name=\"response_format\"\r\n\r\n".getBytes("UTF-8"));
+        body.write("json\r\n".getBytes("UTF-8"));
 
         // language parameter (if specified)
         if (lang != null && !lang.isEmpty()) {
-            writer.append("--").append(boundary).append("\r\n");
-            writer.append("Content-Disposition: form-data; name=\"language\"\r\n\r\n");
-            writer.append(lang).append("\r\n");
+            body.write(("--" + boundary + "\r\n").getBytes("UTF-8"));
+            body.write("Content-Disposition: form-data; name=\"language\"\r\n\r\n".getBytes("UTF-8"));
+            body.write((lang + "\r\n").getBytes("UTF-8"));
         }
 
         // file parameter
-        writer.append("--").append(boundary).append("\r\n");
-        writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"chunk.wav\"\r\n");
-        writer.append("Content-Type: audio/wav\r\n\r\n");
-        writer.flush();
+        body.write(("--" + boundary + "\r\n").getBytes("UTF-8"));
+        body.write("Content-Disposition: form-data; name=\"file\"; filename=\"chunk.wav\"\r\n".getBytes("UTF-8"));
+        body.write("Content-Type: audio/wav\r\n\r\n".getBytes("UTF-8"));
+        body.write(wavBytes);
+        body.write("\r\n".getBytes("UTF-8"));
 
-        os.write(wavBytes);
+        // closing boundary
+        body.write(("--" + boundary + "--\r\n").getBytes("UTF-8"));
+
+        byte[] payloadBytes = body.toByteArray();
+        conn.setFixedLengthStreamingMode(payloadBytes.length);
+
+        OutputStream os = conn.getOutputStream();
+        os.write(payloadBytes);
         os.flush();
-
-        writer.append("\r\n");
-        writer.append("--").append(boundary).append("--\r\n");
-        writer.flush();
-        writer.close();
+        os.close();
 
         int code = conn.getResponseCode();
         InputStream is = (code >= 200 && code < 300) ? conn.getInputStream() : conn.getErrorStream();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte[] buf = new byte[1024];
         int r;
-        while ((r = is.read(buf)) != -1) baos.write(buf, 0, r);
+        if (is != null) {
+            while ((r = is.read(buf)) != -1) baos.write(buf, 0, r);
+            is.close();
+        }
         String resp = baos.toString("UTF-8");
 
         if (code != 200) {
@@ -185,8 +190,11 @@ public class GroqCloudClient {
         payload.put("messages", messages);
         payload.put("temperature", 0.2);
 
+        byte[] payloadBytes = payload.toString().getBytes("UTF-8");
+        conn.setFixedLengthStreamingMode(payloadBytes.length);
+
         OutputStream os = conn.getOutputStream();
-        os.write(payload.toString().getBytes("UTF-8"));
+        os.write(payloadBytes);
         os.flush();
         os.close();
 
@@ -195,7 +203,10 @@ public class GroqCloudClient {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte[] buf = new byte[1024];
         int r;
-        while ((r = is.read(buf)) != -1) baos.write(buf, 0, r);
+        if (is != null) {
+            while ((r = is.read(buf)) != -1) baos.write(buf, 0, r);
+            is.close();
+        }
         String resp = baos.toString("UTF-8");
 
         if (code != 200) {

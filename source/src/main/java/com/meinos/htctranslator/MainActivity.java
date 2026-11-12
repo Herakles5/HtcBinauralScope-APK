@@ -454,13 +454,17 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 tvLogOutput.setText(log + tvLogOutput.getText());
                 tvStatus.setText("🔊 Playing translation (" + finalTarget + ") in right ear...");
 
-                Locale ttsLocale = Locale.GERMAN;
-                if ("EN".equalsIgnoreCase(finalTarget)) {
-                    ttsLocale = Locale.ENGLISH;
-                } else if ("KO".equalsIgnoreCase(finalTarget)) {
-                    ttsLocale = Locale.KOREAN;
+                if (!finalOrig.startsWith("(")) {
+                    Locale ttsLocale = Locale.GERMAN;
+                    if ("EN".equalsIgnoreCase(finalTarget)) {
+                        ttsLocale = Locale.ENGLISH;
+                    } else if ("KO".equalsIgnoreCase(finalTarget)) {
+                        ttsLocale = Locale.KOREAN;
+                    }
+                    speakBinaural(finalTrans, ttsLocale);
+                } else {
+                    tvStatus.setText("⚠️ " + finalOrig + ": " + finalTrans);
                 }
-                speakBinaural(finalTrans, ttsLocale);
             } else if (isContinuous) {
                 tvStatus.setText("🔴 Continuous translation (" + currentLangMode + ") – listening...");
             }
