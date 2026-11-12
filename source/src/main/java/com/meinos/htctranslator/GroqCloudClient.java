@@ -33,54 +33,23 @@ public class GroqCloudClient {
     private static final String GROQ_TRANSCRIPTION_URL = "https://api.groq.com/openai/v1/audio/transcriptions";
     private static final String GROQ_CHAT_URL = "https://api.groq.com/openai/v1/chat/completions";
 
-    public static TranslationResult processAudio(byte[] wavBytes, String apiKey, String langMode) {
-        String whisperLang = null;
-        String sourceName = "KO";
-        String targetName = "DE";
-        String promptInstruction = "Translate the following speech directly into natural, fluent German. Return only the German translation, no notes.";
+    public static TranslationResult processAudio(byte[] wavBytes, String apiKey, String sourceCode, String targetCode, String sourceName, String targetName) {
+        String whisperLang = "auto".equalsIgnoreCase(sourceCode) ? null : sourceCode.toLowerCase();
+        String sourceDisplayName = ("auto".equalsIgnoreCase(sourceCode) ? "AUTO" : sourceCode.toUpperCase());
+        String targetDisplayName = targetCode.toUpperCase();
 
-        if ("KR_DE".equalsIgnoreCase(langMode)) {
-            whisperLang = "ko";
-            sourceName = "KO";
-            targetName = "DE";
-            promptInstruction = "Translate the following Korean speech directly into natural, fluent German. Return only the German translation, no notes.";
-        } else if ("KR_EN".equalsIgnoreCase(langMode)) {
-            whisperLang = "ko";
-            sourceName = "KO";
-            targetName = "EN";
-            promptInstruction = "Translate the following Korean speech directly into natural, fluent English. Return only the English translation, no notes.";
-        } else if ("EN_DE".equalsIgnoreCase(langMode)) {
-            whisperLang = "en";
-            sourceName = "EN";
-            targetName = "DE";
-            promptInstruction = "Translate the following English speech directly into natural, fluent German. Return only the German translation, no notes.";
-        } else if ("EN_KR".equalsIgnoreCase(langMode)) {
-            whisperLang = "en";
-            sourceName = "EN";
-            targetName = "KO";
-            promptInstruction = "Translate the following English speech directly into natural, fluent Korean. Return only the Korean translation, no notes.";
-        } else if ("DE_KR".equalsIgnoreCase(langMode)) {
-            whisperLang = "de";
-            sourceName = "DE";
-            targetName = "KO";
-            promptInstruction = "Translate the following German speech directly into natural, fluent Korean. Return only the Korean translation, no notes.";
-        } else if ("DE_EN".equalsIgnoreCase(langMode)) {
-            whisperLang = "de";
-            sourceName = "DE";
-            targetName = "EN";
-            promptInstruction = "Translate the following German speech directly into natural, fluent English. Return only the English translation, no notes.";
+        String promptInstruction;
+        if ("auto".equalsIgnoreCase(sourceCode)) {
+            promptInstruction = "You are a professional real-time live interpreter. Translate the spoken speech directly into natural, fluent " + targetName + ". Output ONLY the final " + targetName + " translation without notes, comments, or phonetic transcriptions.";
         } else {
-            whisperLang = null;
-            sourceName = "AUTO";
-            targetName = "DE";
-            promptInstruction = "Detect the spoken language. If Korean or English, translate directly into natural German. If German, translate to English. Return only the translation, no extra text.";
+            promptInstruction = "You are a professional real-time live interpreter. Translate the following " + sourceName + " speech directly into natural, fluent " + targetName + ". Output ONLY the final " + targetName + " translation without notes, comments, or phonetic transcriptions.";
         }
 
         try {
             // 1. Transcribe Audio via Groq Whisper-large-v3-turbo
             String transcript = transcribeWithGroq(wavBytes, apiKey, whisperLang);
             if (transcript == null || transcript.trim().length() < 2) {
-                return new TranslationResult(false, "", "", sourceName, targetName, "No speech detected");
+                return new TranslationResult(false, "", "", sourceDisplayName, targetDisplayName, "No speech detected");
             }
 
             // 2. Translate via Groq qwen/qwen3.8-27b
@@ -89,14 +58,13 @@ public class GroqCloudClient {
                 translated = transcript;
             }
 
-            return new TranslationResult(true, transcript.trim(), translated.trim(), sourceName, targetName, null);
+            return new TranslationResult(true, transcript.trim(), translated.trim(), sourceDisplayName, targetDisplayName, null);
         } catch (Exception e) {
-            return new TranslationResult(false, "", "", sourceName, targetName, e.getMessage());
+            return new TranslationResult(false, "", "", sourceDisplayName, targetDisplayName, e.getMessage());
         }
     }
 
     private static String transcribeWithGroq(byte[] wavBytes, String apiKey, String lang) throws Exception {
-        // Standard alphanumeric boundary without '=' characters (RFC 2046 compliant, Cloudflare/Envoy friendly)
         String boundary = "----GroqFormBoundary" + System.currentTimeMillis() + "XYZ";
         URL url = new URL(GROQ_TRANSCRIPTION_URL);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -120,7 +88,7 @@ public class GroqCloudClient {
         body.write("json\r\n".getBytes("UTF-8"));
 
         // language parameter (if specified)
-        if (lang != null && !lang.isEmpty()) {
+        if (lang != null && !lang.isEmpty() && !"auto".equalsIgnoreCase(lang)) {
             body.write(("--" + boundary + "\r\n").getBytes("UTF-8"));
             body.write("Content-Disposition: form-data; name=\"language\"\r\n\r\n".getBytes("UTF-8"));
             body.write((lang + "\r\n").getBytes("UTF-8"));
@@ -188,7 +156,7 @@ public class GroqCloudClient {
         messages.put(userMsg);
 
         payload.put("messages", messages);
-        payload.put("temperature", 0.2);
+        payload.put("temperature", 0.1);
 
         byte[] payloadBytes = payload.toString().getBytes("UTF-8");
         conn.setFixedLengthStreamingMode(payloadBytes.length);

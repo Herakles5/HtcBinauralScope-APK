@@ -28,15 +28,11 @@ An advanced real-time dual-trace oscilloscope and binaural AI speech translator 
 - **Right Ear:** Plays real-time AI-synthesized translation via localized TTS.
 - Allows listening to foreign livestreams (e.g. Korean YouTube, Twitch, Podcasts) with immediate native translation in the right ear.
 
-### 🔄 3. Six Direct Language Pairs + Auto-Detect
-Optimized for high-speed, zero-hallucination inference with native Whisper language targeting:
-- 🇰🇷 **KR ➔ 🇩🇪 DE** *(Korean to German)*
-- 🇰🇷 **KR ➔ 🇬🇧 EN** *(Korean to English)*
-- 🇬🇧 **EN ➔ 🇩🇪 DE** *(English to German)*
-- 🇬🇧 **EN ➔ 🇰🇷 KR** *(English to Korean)*
-- 🇩🇪 **DE ➔ 🇰🇷 KR** *(German to Korean)*
-- 🇩🇪 **DE ➔ 🇬🇧 EN** *(German to English)*
-- ⚡ **AUTO-DETECT** *(Multi-language auto speech recognition)*
+### 🌍 3. Global Multi-Language Matrix (28+ Languages & Auto-Detect)
+- **Flexible Source & Target Selectors:** Combine any of 28+ supported languages worldwide!
+- **🌐 Source (Input Audio / Left Ear):** `Auto Detect` (Automatic Speech Recognition) or direct selection from Korean, Japanese, Chinese, English, German, Spanish, French, Italian, Portuguese, Russian, Turkish, Arabic, Hindi, Vietnamese, Thai, Indonesian, Polish, Ukrainian, Dutch, Swedish, Czech, Greek, Hebrew, Romanian, Hungarian, Danish, Finnish, Norwegian.
+- **🔊 Target (Output Audio / Right Ear):** High-speed neural translation played directly in your right earbud using localized native Text-to-Speech voices.
+- **⇄ Quick Swap Button:** Easily invert the translation direction with a single tap.
 
 ### 🔁 4. Continuous Translation Loop
 - One-tap toggle button: **`▶ START CONTINUOUS TRANSLATION`**

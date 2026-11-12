@@ -46,27 +46,88 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     private static final int REQUEST_MEDIA_PROJECTION = 1002;
     private static final String PC_BRIDGE_URL = "http://10.50.169.111:11436/translate";
 
-    private static final String[] LANG_LABELS = new String[]{
-            "🇰🇷 KR ➔ 🇩🇪 DE (Korean to German)",
-            "🇰🇷 KR ➔ 🇬🇧 EN (Korean to English)",
-            "🇬🇧 EN ➔ 🇩🇪 DE (English to German)",
-            "🇬🇧 EN ➔ 🇰🇷 KR (English to Korean)",
-            "🇩🇪 DE ➔ 🇰🇷 KR (German to Korean)",
-            "🇩🇪 DE ➔ 🇬🇧 EN (German to English)",
-            "⚡ AUTO-DETECT (Auto Speech Recognition)"
+    public static class LanguageItem {
+        public final String code;
+        public final String name;
+        public final String display;
+
+        public LanguageItem(String code, String name, String display) {
+            this.code = code;
+            this.name = name;
+            this.display = display;
+        }
+
+        @Override
+        public String toString() {
+            return display;
+        }
+    }
+
+    private static final LanguageItem[] SOURCE_LANGUAGES = new LanguageItem[]{
+            new LanguageItem("auto", "Auto Detect", "🌐 Auto Detect"),
+            new LanguageItem("ko", "Korean", "🇰🇷 Korean (한국어)"),
+            new LanguageItem("en", "English", "🇬🇧 English"),
+            new LanguageItem("de", "German", "🇩🇪 German (Deutsch)"),
+            new LanguageItem("ja", "Japanese", "🇯🇵 Japanese (日本語)"),
+            new LanguageItem("zh", "Chinese", "🇨🇳 Chinese (中文)"),
+            new LanguageItem("es", "Spanish", "🇪🇸 Spanish (Español)"),
+            new LanguageItem("fr", "French", "🇫🇷 French (Français)"),
+            new LanguageItem("it", "Italian", "🇮🇹 Italian (Italiano)"),
+            new LanguageItem("pt", "Portuguese", "🇵🇹 Portuguese (Português)"),
+            new LanguageItem("ru", "Russian", "🇷🇺 Russian (Русский)"),
+            new LanguageItem("tr", "Turkish", "🇹🇷 Turkish (Türkçe)"),
+            new LanguageItem("ar", "Arabic", "🇦🇪 Arabic (العربية)"),
+            new LanguageItem("hi", "Hindi", "🇮🇳 Hindi (हिन्दी)"),
+            new LanguageItem("vi", "Vietnamese", "🇻🇳 Vietnamese (Tiếng Việt)"),
+            new LanguageItem("th", "Thai", "🇹🇭 Thai (ไทย)"),
+            new LanguageItem("id", "Indonesian", "🇮🇩 Indonesian (Bahasa)"),
+            new LanguageItem("pl", "Polish", "🇵🇱 Polish (Polski)"),
+            new LanguageItem("uk", "Ukrainian", "🇺🇦 Ukrainian (Українська)"),
+            new LanguageItem("nl", "Dutch", "🇳🇱 Dutch (Nederlands)"),
+            new LanguageItem("sv", "Swedish", "🇸🇪 Swedish (Svenska)"),
+            new LanguageItem("cs", "Czech", "🇨🇿 Czech (Čeština)"),
+            new LanguageItem("el", "Greek", "🇬🇷 Greek (Ελληνικά)"),
+            new LanguageItem("he", "Hebrew", "🇮🇱 Hebrew (עברית)"),
+            new LanguageItem("ro", "Romanian", "🇷🇴 Romanian (Română)"),
+            new LanguageItem("hu", "Hungarian", "🇭🇺 Hungarian (Magyar)"),
+            new LanguageItem("da", "Danish", "🇩🇰 Danish (Dansk)"),
+            new LanguageItem("fi", "Finnish", "🇫🇮 Finnish (Suomi)"),
+            new LanguageItem("no", "Norwegian", "🇳🇴 Norwegian (Norsk)")
     };
 
-    private static final String[] LANG_CODES = new String[]{
-            "KR_DE",
-            "KR_EN",
-            "EN_DE",
-            "EN_KR",
-            "DE_KR",
-            "DE_EN",
-            "AUTO"
+    private static final LanguageItem[] TARGET_LANGUAGES = new LanguageItem[]{
+            new LanguageItem("de", "German", "🇩🇪 German (Deutsch)"),
+            new LanguageItem("en", "English", "🇬🇧 English"),
+            new LanguageItem("ko", "Korean", "🇰🇷 Korean (한국어)"),
+            new LanguageItem("ja", "Japanese", "🇯🇵 Japanese (日本語)"),
+            new LanguageItem("zh", "Chinese", "🇨🇳 Chinese (中文)"),
+            new LanguageItem("es", "Spanish", "🇪🇸 Spanish (Español)"),
+            new LanguageItem("fr", "French", "🇫🇷 French (Français)"),
+            new LanguageItem("it", "Italian", "🇮🇹 Italian (Italiano)"),
+            new LanguageItem("pt", "Portuguese", "🇵🇹 Portuguese (Português)"),
+            new LanguageItem("ru", "Russian", "🇷🇺 Russian (Русский)"),
+            new LanguageItem("tr", "Turkish", "🇹🇷 Turkish (Türkçe)"),
+            new LanguageItem("ar", "Arabic", "🇦🇪 Arabic (العربية)"),
+            new LanguageItem("hi", "Hindi", "🇮🇳 Hindi (हिन्दी)"),
+            new LanguageItem("vi", "Vietnamese", "🇻🇳 Vietnamese (Tiếng Việt)"),
+            new LanguageItem("th", "Thai", "🇹🇭 Thai (ไทย)"),
+            new LanguageItem("id", "Indonesian", "🇮🇩 Indonesian (Bahasa)"),
+            new LanguageItem("pl", "Polish", "🇵🇱 Polish (Polski)"),
+            new LanguageItem("uk", "Ukrainian", "🇺🇦 Ukrainian (Українська)"),
+            new LanguageItem("nl", "Dutch", "🇳🇱 Dutch (Nederlands)"),
+            new LanguageItem("sv", "Swedish", "🇸🇪 Swedish (Svenska)"),
+            new LanguageItem("cs", "Czech", "🇨🇿 Czech (Čeština)"),
+            new LanguageItem("el", "Greek", "🇬🇷 Greek (Ελληνικά)"),
+            new LanguageItem("he", "Hebrew", "🇮🇱 Hebrew (עברית)"),
+            new LanguageItem("ro", "Romanian", "🇷🇴 Romanian (Română)"),
+            new LanguageItem("hu", "Hungarian", "🇭🇺 Hungarian (Magyar)"),
+            new LanguageItem("da", "Danish", "🇩🇰 Danish (Dansk)"),
+            new LanguageItem("fi", "Finnish", "🇫🇮 Finnish (Suomi)"),
+            new LanguageItem("no", "Norwegian", "🇳🇴 Norwegian (Norsk)")
     };
 
-    private volatile String currentLangMode = "KR_DE";
+    private volatile LanguageItem currentSource = SOURCE_LANGUAGES[0];
+    private volatile LanguageItem currentTarget = TARGET_LANGUAGES[0];
 
     private OscilloscopeView oscilloscopeView;
     private TextView tvDeviceStatus, tvAudioMetrics, tvRfMetrics, tvStatus, tvLogOutput;
@@ -87,7 +148,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     private EditText etApiKey;
     private SwitchCompat swBinaural;
     private EditText etServerIp;
-    private Spinner spLangMode;
+    private Spinner spSourceLang, spTargetLang;
+    private Button btnSwapLang;
     private Button btnContinuousTranslate, btnTranslateChunk;
 
     private BinauralAudioEngine audioEngine;
@@ -137,7 +199,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
         swBinaural = findViewById(R.id.swBinaural);
         etServerIp = findViewById(R.id.etServerIp);
-        spLangMode = findViewById(R.id.spLangMode);
+        spSourceLang = findViewById(R.id.spSourceLang);
+        spTargetLang = findViewById(R.id.spTargetLang);
+        btnSwapLang = findViewById(R.id.btnSwapLang);
         btnContinuousTranslate = findViewById(R.id.btnContinuousTranslate);
         btnTranslateChunk = findViewById(R.id.btnTranslateChunk);
 
@@ -192,18 +256,76 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             }
         });
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, LANG_LABELS);
-        spLangMode.setAdapter(adapter);
-        spLangMode.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+        ArrayAdapter<LanguageItem> sourceAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, SOURCE_LANGUAGES);
+        spSourceLang.setAdapter(sourceAdapter);
+
+        ArrayAdapter<LanguageItem> targetAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, TARGET_LANGUAGES);
+        spTargetLang.setAdapter(targetAdapter);
+
+        String savedSource = prefs.getString("source_lang_code", "auto");
+        for (int i = 0; i < SOURCE_LANGUAGES.length; i++) {
+            if (SOURCE_LANGUAGES[i].code.equalsIgnoreCase(savedSource)) {
+                spSourceLang.setSelection(i);
+                currentSource = SOURCE_LANGUAGES[i];
+                break;
+            }
+        }
+
+        String savedTarget = prefs.getString("target_lang_code", "de");
+        for (int i = 0; i < TARGET_LANGUAGES.length; i++) {
+            if (TARGET_LANGUAGES[i].code.equalsIgnoreCase(savedTarget)) {
+                spTargetLang.setSelection(i);
+                currentTarget = TARGET_LANGUAGES[i];
+                break;
+            }
+        }
+
+        spSourceLang.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
-                if (position >= 0 && position < LANG_CODES.length) {
-                    currentLangMode = LANG_CODES[position];
+                if (position >= 0 && position < SOURCE_LANGUAGES.length) {
+                    currentSource = SOURCE_LANGUAGES[position];
+                    prefs.edit().putString("source_lang_code", currentSource.code).apply();
                 }
             }
 
             @Override
             public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
+
+        spTargetLang.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
+                if (position >= 0 && position < TARGET_LANGUAGES.length) {
+                    currentTarget = TARGET_LANGUAGES[position];
+                    prefs.edit().putString("target_lang_code", currentTarget.code).apply();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
+
+        btnSwapLang.setOnClickListener(v -> {
+            if ("auto".equalsIgnoreCase(currentSource.code)) {
+                Toast.makeText(this, "Cannot swap when Source is Auto Detect", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String oldSourceCode = currentSource.code;
+            String oldTargetCode = currentTarget.code;
+
+            for (int i = 0; i < SOURCE_LANGUAGES.length; i++) {
+                if (SOURCE_LANGUAGES[i].code.equalsIgnoreCase(oldTargetCode)) {
+                    spSourceLang.setSelection(i);
+                    break;
+                }
+            }
+            for (int j = 0; j < TARGET_LANGUAGES.length; j++) {
+                if (TARGET_LANGUAGES[j].code.equalsIgnoreCase(oldSourceCode)) {
+                    spTargetLang.setSelection(j);
+                    break;
+                }
+            }
         });
 
         rgAudioSource.setOnCheckedChangeListener((group, checkedId) -> {
@@ -360,8 +482,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     }
 
     private void processAudioChunk(byte[] wavBytes, boolean isContinuous) {
-        String sourceLang = "AUTO";
-        String targetLang = "DE";
+        String sourceLang = currentSource.code.toUpperCase();
+        String targetLang = currentTarget.code.toUpperCase();
         String original = "";
         String translated = "";
 
@@ -371,7 +493,11 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             String apiKey = (etApiKey != null) ? etApiKey.getText().toString().trim() : getEmbeddedKey();
             if (apiKey.isEmpty()) apiKey = getEmbeddedKey();
 
-            GroqCloudClient.TranslationResult res = GroqCloudClient.processAudio(wavBytes, apiKey, currentLangMode);
+            GroqCloudClient.TranslationResult res = GroqCloudClient.processAudio(
+                    wavBytes, apiKey,
+                    currentSource.code, currentTarget.code,
+                    currentSource.name, currentTarget.name
+            );
             if (res.success) {
                 sourceLang = res.sourceLang;
                 targetLang = res.targetLang;
@@ -408,7 +534,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 conn.setReadTimeout(12000);
                 conn.setDoOutput(true);
                 conn.setRequestProperty("Content-Type", "audio/wav");
-                conn.setRequestProperty("X-Lang-Mode", currentLangMode);
+                conn.setRequestProperty("X-Source-Lang", currentSource.code);
+                conn.setRequestProperty("X-Target-Lang", currentTarget.code);
+                conn.setRequestProperty("X-Lang-Mode", currentSource.code.toUpperCase() + "_" + currentTarget.code.toUpperCase());
 
                 OutputStream os = conn.getOutputStream();
                 os.write(wavBytes);
@@ -425,8 +553,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
                     JSONObject json = new JSONObject(respStr);
                     if (json.optBoolean("success", false)) {
-                        sourceLang = json.optString("source", "AUTO");
-                        targetLang = json.optString("target", "DE");
+                        sourceLang = json.optString("source", currentSource.code.toUpperCase());
+                        targetLang = json.optString("target", currentTarget.code.toUpperCase());
                         original = json.optString("original", "");
                         translated = json.optString("translated", "");
                     }
@@ -455,27 +583,59 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 tvStatus.setText("🔊 Playing translation (" + finalTarget + ") in right ear...");
 
                 if (!finalOrig.startsWith("(")) {
-                    Locale ttsLocale = Locale.GERMAN;
-                    if ("EN".equalsIgnoreCase(finalTarget)) {
-                        ttsLocale = Locale.ENGLISH;
-                    } else if ("KO".equalsIgnoreCase(finalTarget)) {
-                        ttsLocale = Locale.KOREAN;
-                    }
-                    speakBinaural(finalTrans, ttsLocale);
+                    speakBinaural(finalTrans, finalTarget);
                 } else {
                     tvStatus.setText("⚠️ " + finalOrig + ": " + finalTrans);
                 }
             } else if (isContinuous) {
-                tvStatus.setText("🔴 Continuous translation (" + currentLangMode + ") – listening...");
+                tvStatus.setText("🔴 Continuous translation (" + currentSource.code.toUpperCase() + " ➔ " + currentTarget.code.toUpperCase() + ") – listening...");
             }
         });
     }
 
-    private void speakBinaural(String text, Locale locale) {
+    private Locale getTtsLocale(String code) {
+        switch (code.toLowerCase()) {
+            case "de": return Locale.GERMAN;
+            case "en": return Locale.ENGLISH;
+            case "ko": return Locale.KOREAN;
+            case "ja": return Locale.JAPANESE;
+            case "zh": return Locale.CHINESE;
+            case "fr": return Locale.FRENCH;
+            case "it": return Locale.ITALIAN;
+            case "es": return new Locale("es");
+            case "pt": return new Locale("pt");
+            case "ru": return new Locale("ru");
+            case "tr": return new Locale("tr");
+            case "ar": return new Locale("ar");
+            case "hi": return new Locale("hi");
+            case "vi": return new Locale("vi");
+            case "th": return new Locale("th");
+            case "id": return new Locale("id");
+            case "pl": return new Locale("pl");
+            case "uk": return new Locale("uk");
+            case "nl": return new Locale("nl");
+            case "sv": return new Locale("sv");
+            case "cs": return new Locale("cs");
+            case "el": return new Locale("el");
+            case "he": return new Locale("he");
+            case "ro": return new Locale("ro");
+            case "hu": return new Locale("hu");
+            case "da": return new Locale("da");
+            case "fi": return new Locale("fi");
+            case "no": return new Locale("no");
+            default: return Locale.getDefault();
+        }
+    }
+
+    private void speakBinaural(String text, String targetCode) {
         if (tts != null) {
+            Locale locale = getTtsLocale(targetCode);
             int res = tts.setLanguage(locale);
             if (res == TextToSpeech.LANG_MISSING_DATA || res == TextToSpeech.LANG_NOT_SUPPORTED) {
-                tts.setLanguage(Locale.GERMAN);
+                res = tts.setLanguage(new Locale(locale.getLanguage()));
+                if (res == TextToSpeech.LANG_MISSING_DATA || res == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    tts.setLanguage(Locale.GERMAN);
+                }
             }
             Bundle params = new Bundle();
             if (swBinaural.isChecked()) {
