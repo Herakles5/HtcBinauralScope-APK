@@ -11,8 +11,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.speech.tts.TextToSpeech;
+import android.content.SharedPreferences;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -68,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     private RadioGroup rgAudioSource;
     private RadioButton rbLivestream, rbMic;
     private SwitchCompat swBinaural;
+    private EditText etServerIp;
     private Spinner spLangMode;
     private Button btnContinuousTranslate, btnTranslateChunk;
 
@@ -109,9 +114,24 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         rbLivestream = findViewById(R.id.rbLivestream);
         rbMic = findViewById(R.id.rbMic);
         swBinaural = findViewById(R.id.swBinaural);
+        etServerIp = findViewById(R.id.etServerIp);
         spLangMode = findViewById(R.id.spLangMode);
         btnContinuousTranslate = findViewById(R.id.btnContinuousTranslate);
         btnTranslateChunk = findViewById(R.id.btnTranslateChunk);
+
+        SharedPreferences prefs = getSharedPreferences("htc_scope", MODE_PRIVATE);
+        String savedIp = prefs.getString("server_ip", "172.18.71.111");
+        etServerIp.setText(savedIp);
+        etServerIp.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(Editable s) {
+                prefs.edit().putString("server_ip", s.toString().trim()).apply();
+            }
+        });
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, LANG_LABELS);
         spLangMode.setAdapter(adapter);
@@ -286,8 +306,15 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         String original = "";
         String translated = "";
 
+        String serverIp = "172.18.71.111";
+        if (etServerIp != null) {
+            String typed = etServerIp.getText().toString().trim();
+            if (!typed.isEmpty()) serverIp = typed;
+        }
+
         try {
-            URL url = new URL(PC_BRIDGE_URL);
+            String bridgeUrl = "http://" + serverIp + ":11436/translate";
+            URL url = new URL(bridgeUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setConnectTimeout(4000);
@@ -320,7 +347,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         } catch (Exception e) {
             if (!isContinuous) {
                 original = "(Connection error: " + e.getClass().getSimpleName() + ")";
-                translated = "Bridge server unreachable: " + e.getMessage();
+                translated = "Cannot reach " + serverIp + ":11436! Check PC IP & Wi-Fi.";
             }
         }
 
