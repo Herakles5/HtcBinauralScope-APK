@@ -135,13 +135,86 @@
                     android:checked="true"
                     android:layout_marginTop="6dp" />
 
-                <!-- Server IP Configuration -->
+                <!-- Backend Engine Selector -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AI BACKEND ENGINE"
+                    android:textColor="@color/neon_cyan"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="8dp" />
+
+                <RadioGroup
+                    android:id="@+id/rgBackendEngine"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="2dp">
+
+                    <RadioButton
+                        android:id="@+id/rbCloudEngine"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🌐 Standalone Cloud (No PC)"
+                        android:textColor="@color/neon_green"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:checked="true" />
+
+                    <RadioButton
+                        android:id="@+id/rbLocalEngine"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🖥️ PC Bridge"
+                        android:textColor="@color/text_white"
+                        android:textSize="11sp"
+                        android:layout_marginStart="10dp" />
+                </RadioGroup>
+
+                <!-- Cloud API Key Configuration (Default) -->
                 <LinearLayout
+                    android:id="@+id/layoutCloudConfig"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginTop="8dp">
+                    android:layout_marginTop="4dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="CLOUD API:"
+                        android:textColor="@color/neon_cyan"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/etApiKey"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:background="#172331"
+                        android:textColor="@color/text_white"
+                        android:textSize="11sp"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:singleLine="true"
+                        android:inputType="textPassword"
+                        android:hint="Groq API Key (gsk_...)"
+                        android:textColorHint="@color/text_muted" />
+                </LinearLayout>
+
+                <!-- Local Server IP Configuration (Hidden by default unless PC Bridge selected) -->
+                <LinearLayout
+                    android:id="@+id/layoutLocalConfig"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="4dp"
+                    android:visibility="gone">
 
                     <TextView
                         android:layout_width="wrap_content"

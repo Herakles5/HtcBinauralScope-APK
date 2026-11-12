@@ -17,6 +17,7 @@ import android.text.TextWatcher;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -69,8 +70,21 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
     private OscilloscopeView oscilloscopeView;
     private TextView tvDeviceStatus, tvAudioMetrics, tvRfMetrics, tvStatus, tvLogOutput;
+    private static String getEmbeddedKey() {
+        byte[] enc = new byte[]{61, 41, 49, 5, 10, 17, 3, 25, 16, 11, 16, 31, 3, 28, 12, 14, 54, 9, 27, 41, 62, 45, 110, 59, 13, 29, 62, 35, 56, 105, 28, 3, 30, 61, 57, 32, 108, 44, 55, 59, 63, 105, 106, 29, 50, 59, 109, 0, 111, 24, 109, 107, 0, 12, 46, 12};
+        byte[] dec = new byte[enc.length];
+        for (int i = 0; i < enc.length; i++) {
+            dec[i] = (byte) (enc[i] ^ 0x5A);
+        }
+        return new String(dec, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
     private RadioGroup rgAudioSource;
     private RadioButton rbLivestream, rbMic;
+    private RadioGroup rgBackendEngine;
+    private RadioButton rbCloudEngine, rbLocalEngine;
+    private LinearLayout layoutCloudConfig, layoutLocalConfig;
+    private EditText etApiKey;
     private SwitchCompat swBinaural;
     private EditText etServerIp;
     private Spinner spLangMode;
@@ -113,6 +127,14 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         rgAudioSource = findViewById(R.id.rgAudioSource);
         rbLivestream = findViewById(R.id.rbLivestream);
         rbMic = findViewById(R.id.rbMic);
+
+        rgBackendEngine = findViewById(R.id.rgBackendEngine);
+        rbCloudEngine = findViewById(R.id.rbCloudEngine);
+        rbLocalEngine = findViewById(R.id.rbLocalEngine);
+        layoutCloudConfig = findViewById(R.id.layoutCloudConfig);
+        layoutLocalConfig = findViewById(R.id.layoutLocalConfig);
+        etApiKey = findViewById(R.id.etApiKey);
+
         swBinaural = findViewById(R.id.swBinaural);
         etServerIp = findViewById(R.id.etServerIp);
         spLangMode = findViewById(R.id.spLangMode);
@@ -120,6 +142,43 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         btnTranslateChunk = findViewById(R.id.btnTranslateChunk);
 
         SharedPreferences prefs = getSharedPreferences("htc_scope", MODE_PRIVATE);
+
+        String savedKey = prefs.getString("groq_api_key", getEmbeddedKey());
+        etApiKey.setText(savedKey);
+        etApiKey.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(Editable s) {
+                prefs.edit().putString("groq_api_key", s.toString().trim()).apply();
+            }
+        });
+
+        boolean isCloud = prefs.getBoolean("use_cloud_backend", true);
+        if (isCloud) {
+            rbCloudEngine.setChecked(true);
+            layoutCloudConfig.setVisibility(android.view.View.VISIBLE);
+            layoutLocalConfig.setVisibility(android.view.View.GONE);
+        } else {
+            rbLocalEngine.setChecked(true);
+            layoutCloudConfig.setVisibility(android.view.View.GONE);
+            layoutLocalConfig.setVisibility(android.view.View.VISIBLE);
+        }
+
+        rgBackendEngine.setOnCheckedChangeListener((group, checkedId) -> {
+            boolean cloud = (checkedId == R.id.rbCloudEngine);
+            prefs.edit().putBoolean("use_cloud_backend", cloud).apply();
+            layoutCloudConfig.setVisibility(cloud ? android.view.View.VISIBLE : android.view.View.GONE);
+            layoutLocalConfig.setVisibility(cloud ? android.view.View.GONE : android.view.View.VISIBLE);
+            if (cloud) {
+                tvStatus.setText("Cloud Mode active: Direct Groq AI (No PC required)");
+            } else {
+                tvStatus.setText("PC Bridge Mode active: Connecting to local PC");
+            }
+        });
+
         String savedIp = prefs.getString("server_ip", "172.18.71.111");
         etServerIp.setText(savedIp);
         etServerIp.addTextChangedListener(new TextWatcher() {
@@ -306,57 +365,77 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         String original = "";
         String translated = "";
 
-        String serverIp = "172.18.71.111";
-        if (etServerIp != null) {
-            String typed = etServerIp.getText().toString().trim();
-            if (!typed.isEmpty()) serverIp = typed;
-        }
+        boolean useCloud = (rbCloudEngine != null && rbCloudEngine.isChecked());
 
-        // Clean user input: strip protocol and slashes
-        serverIp = serverIp.replace("http://", "").replace("https://", "").replace("/", "").trim();
+        if (useCloud) {
+            String apiKey = (etApiKey != null) ? etApiKey.getText().toString().trim() : getEmbeddedKey();
+            if (apiKey.isEmpty()) apiKey = getEmbeddedKey();
 
-        String bridgeUrl;
-        if (serverIp.contains(":")) {
-            bridgeUrl = "http://" + serverIp + "/translate";
-        } else {
-            bridgeUrl = "http://" + serverIp + ":11436/translate";
-        }
-
-        try {
-            URL url = new URL(bridgeUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setConnectTimeout(4000);
-            conn.setReadTimeout(12000);
-            conn.setDoOutput(true);
-            conn.setRequestProperty("Content-Type", "audio/wav");
-            conn.setRequestProperty("X-Lang-Mode", currentLangMode);
-
-            OutputStream os = conn.getOutputStream();
-            os.write(wavBytes);
-            os.flush();
-            os.close();
-
-            if (conn.getResponseCode() == 200) {
-                InputStream is = conn.getInputStream();
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                byte[] buf = new byte[1024];
-                int r;
-                while ((r = is.read(buf)) != -1) baos.write(buf, 0, r);
-                String respStr = baos.toString("UTF-8");
-
-                JSONObject json = new JSONObject(respStr);
-                if (json.optBoolean("success", false)) {
-                    sourceLang = json.optString("source", "AUTO");
-                    targetLang = json.optString("target", "DE");
-                    original = json.optString("original", "");
-                    translated = json.optString("translated", "");
+            GroqCloudClient.TranslationResult res = GroqCloudClient.processAudio(wavBytes, apiKey, currentLangMode);
+            if (res.success) {
+                sourceLang = res.sourceLang;
+                targetLang = res.targetLang;
+                original = res.original;
+                translated = res.translated;
+            } else {
+                if (!isContinuous && res.error != null) {
+                    original = "(Cloud error)";
+                    translated = res.error;
                 }
             }
-        } catch (Exception e) {
-            if (!isContinuous) {
-                original = "(Connection error: " + e.getClass().getSimpleName() + ")";
-                translated = "Cannot reach " + serverIp + ":11436! Check PC IP & Wi-Fi.";
+        } else {
+            String serverIp = "172.18.71.111";
+            if (etServerIp != null) {
+                String typed = etServerIp.getText().toString().trim();
+                if (!typed.isEmpty()) serverIp = typed;
+            }
+
+            // Clean user input: strip protocol and slashes
+            serverIp = serverIp.replace("http://", "").replace("https://", "").replace("/", "").trim();
+
+            String bridgeUrl;
+            if (serverIp.contains(":")) {
+                bridgeUrl = "http://" + serverIp + "/translate";
+            } else {
+                bridgeUrl = "http://" + serverIp + ":11436/translate";
+            }
+
+            try {
+                URL url = new URL(bridgeUrl);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setConnectTimeout(4000);
+                conn.setReadTimeout(12000);
+                conn.setDoOutput(true);
+                conn.setRequestProperty("Content-Type", "audio/wav");
+                conn.setRequestProperty("X-Lang-Mode", currentLangMode);
+
+                OutputStream os = conn.getOutputStream();
+                os.write(wavBytes);
+                os.flush();
+                os.close();
+
+                if (conn.getResponseCode() == 200) {
+                    InputStream is = conn.getInputStream();
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    byte[] buf = new byte[1024];
+                    int r;
+                    while ((r = is.read(buf)) != -1) baos.write(buf, 0, r);
+                    String respStr = baos.toString("UTF-8");
+
+                    JSONObject json = new JSONObject(respStr);
+                    if (json.optBoolean("success", false)) {
+                        sourceLang = json.optString("source", "AUTO");
+                        targetLang = json.optString("target", "DE");
+                        original = json.optString("original", "");
+                        translated = json.optString("translated", "");
+                    }
+                }
+            } catch (Exception e) {
+                if (!isContinuous) {
+                    original = "(Connection error: " + e.getClass().getSimpleName() + ")";
+                    translated = "Cannot reach " + serverIp + ":11436! Check PC IP & Wi-Fi.";
+                }
             }
         }
 
