@@ -312,8 +312,17 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             if (!typed.isEmpty()) serverIp = typed;
         }
 
+        // Clean user input: strip protocol and slashes
+        serverIp = serverIp.replace("http://", "").replace("https://", "").replace("/", "").trim();
+
+        String bridgeUrl;
+        if (serverIp.contains(":")) {
+            bridgeUrl = "http://" + serverIp + "/translate";
+        } else {
+            bridgeUrl = "http://" + serverIp + ":11436/translate";
+        }
+
         try {
-            String bridgeUrl = "http://" + serverIp + ":11436/translate";
             URL url = new URL(bridgeUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
